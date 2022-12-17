@@ -1,0 +1,78 @@
+# Load the necessary libraries
+library(readxl)
+
+# Read the train_data.xls file into a dataframe
+train_data <- read_excel("train_data.xls")
+
+# Read the test_data.xls file into a dataframe
+test_data <- read_excel("test_data.xls")
+
+# Get the number of readers in the train_data dataframe
+readers_training <- length(unique(train_data$reader))
+
+# Get the number of readers in the test_data dataframe
+readers_test <- length(unique(test_data$reader))
+
+# Get the number of columns in the train_data dataframe
+columns_training <- ncol(train_data)
+
+# Set the number of nearest neighbours to determine recommendations
+k_NN <- 3
+
+# Get a vector of book titles
+books <- unique(train_data$book)
+
+# Create the recommendations dataframe with initial structure and content
+recommendations <- data.frame(reader = character(0), book = character(0), rank = numeric(0))
+
+# Initialize the MAE vector
+MAE <- numeric(0)
+
+
+
+B
+
+
+calculate_similarities <- function(train_data, test_data) {
+  
+  # Get a list of the unique reader names in the train data
+  train_readers <- unique(train_data$reader)
+  
+  # Get a list of the unique reader names in the test data
+  test_readers <- unique(test_data$reader)
+  
+  # Initialize the similarities dataframe
+  similarities <- data.frame(reader1 = character(0), reader2 = character(0), similarity = numeric(0))
+  
+  # Loop through each test reader
+  for (test_reader in test_readers) {
+    
+    # Get the books that the test reader has rated
+    test_reader_books <- test_data[test_data$reader == test_reader, "book"]
+    
+    # Loop through each train reader
+    for (train_reader in train_readers) {
+      
+      # Get the books that the train reader has rated
+      train_reader_books <- train_data[train_data$reader == train_reader, "book"]
+      
+      # Calculate the number of books that both readers have rated
+      common_books <- length(intersect(test_reader_books, train_reader_books))
+      
+      # Calculate the similarity value
+      similarity <- common_books / (length(test_reader_books) + length(train_reader_books) - common_books)
+      
+      # Add the similarity value to the similarities dataframe
+      similarities <- rbind(similarities, data.frame(reader1 = test_reader, reader2 = train_reader, similarity = similarity))
+      
+    }
+  }
+  
+  # Return the similarities dataframe
+  return(similarities)
+}
+
+
+
+
+similarities <- calculate_similarities(train_data, test_data)
