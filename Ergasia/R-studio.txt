@@ -73,6 +73,108 @@ calculate_similarities <- function(train_data, test_data) {
 }
 
 
-
+Γ)
 
 similarities <- calculate_similarities(train_data, test_data)
+for (i in 1:readers_test) {
+  k_nearest <- get_k_nearest(i, k_NN)
+  predictions <- calculate_predictions(i, k_nearest)
+  need_recommendation <- spot_the_NAs(i)
+  recommendations <- calculate_recommendations(i,need_recommendation,predictions,recommendations)
+  MAE <- mean_absolute_error(i,predictions,MAE)
+}
+
+
+Δ)
+
+  # calculate the k_NN nearest neighbours for the i-th reader of test_data
+  # based on the similarities entered
+  get_k_nearest <- function(test_data, similarities, i, k) {
+
+  # sort the similarities in descending order
+  sorted_similarities <- sort(similarities[, i], decreasing = TRUE)
+  
+  # get the indices of the k_NN nearest neighbours
+  k_nn_indices <- names(head(sorted_similarities, k))
+  
+  # extract the k_NN nearest neighbours from the test_data
+  k_nearest <- test_data[k_nn_indices, ]
+  
+  return(k_nearest)
+}
+
+
+E) 
+
+calculate_predictions <- function(NU, books, k_nearest, k) {
+  # Initialize empty vector to hold predictions
+  predictions <- rep(NA, length(books))
+  
+  # Loop through each book
+  for (i in 1:length(books)) {
+    # Initialize variable to hold total similarity-weighted rating
+    weighted_sum <- 0
+    # Initialize variable to hold total similarity
+    similarity_sum <- 0
+    
+    # Loop through k nearest neighbors
+    for (j in 1:k) {
+      # Get current nearest neighbor
+      neighbor <- k_nearest[j]
+      # Get similarity between NU and current neighbor
+      similarity <- calculate_similarity(NU, neighbor)
+      # Get rating of current neighbor for current book
+      rating <- get_rating(neighbor, books[i])
+      # Add similarity-weighted rating to weighted sum
+      weighted_sum <- weighted_sum + (similarity * rating)
+      # Add similarity to similarity sum
+      similarity_sum <- similarity_sum + similarity
+    }
+    
+    # Divide weighted sum by similarity sum to get predicted rating
+    predictions[i] <- weighted_sum / similarity_sum
+  }
+  
+  return(predictions)
+}
+
+ΣΤ)
+
+
+spot_the_NAs <- function(NU, books) {
+  # Initialize empty vector to hold positions of books needing recommendation
+  need_recommendation <- c()
+  
+  # Loop through each book
+  for (i in 1:length(books)) {
+    # Get rating for current book
+    rating <- get_rating(NU, books[i])
+    
+    # Check if rating is NA
+    if (is.na(rating)) {
+      # Add position of current book to need_recommendation vector
+      need_recommendation <- c(need_recommendation, i)
+    }
+  }
+  
+  return(need_recommendation)
+}
+
+
+
+Ζ)
+
+
+calculate_recommendations <- function(NU, predictions, need_recommendation, books, recommendations) {
+  # Loop through each book needing recommendation
+  for (i in need_recommendation) {
+    # Get predicted rating for current book
+    rating <- predictions[i]
+    # Add recommendation to dataframe
+    recommendations <- rbind(recommendations, data.frame(reader=NU, book=books[i], rating=rating))
+  }
+  
+  return(recommendations)
+}
+
+
